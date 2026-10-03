@@ -19,11 +19,11 @@ func TestSendVerificationCode(t *testing.T) {
 		w.WriteHeader(200)
 	}))
 	defer srv.Close()
-	c := &Client{APIKey: "re_test", From: "a@b.c", SiteName: "سایت", Endpoint: srv.URL}
-	if err := c.SendVerificationCode(context.Background(), "u@x.y", "123456", 10); err != nil {
+	c := &Client{APIKey: "re_test", From: "a@b.c", SiteName: "سایت", SiteURL: "https://example.com", Endpoint: srv.URL}
+	if err := c.SendVerificationCode(context.Background(), "u@x.y", "علی", "123456", 10); err != nil {
 		t.Fatal(err)
 	}
-	if got.To[0] != "u@x.y" || !strings.Contains(got.HTML, "123456") || !strings.Contains(got.HTML, `dir="rtl"`) {
+	if got.To[0] != "u@x.y" || !strings.Contains(got.HTML, "123456") || !strings.Contains(got.HTML, `dir="rtl"`) || !strings.Contains(got.HTML, `lang="fa"`) || strings.Contains(got.HTML, "{{") || strings.Contains(got.HTML, "ZgotmplZ") {
 		t.Fatalf("unexpected payload: %+v", got)
 	}
 }
@@ -32,7 +32,7 @@ func TestSendError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(403) }))
 	defer srv.Close()
 	c := &Client{Endpoint: srv.URL}
-	if c.SendVerificationCode(context.Background(), "u@x.y", "1", 1) == nil {
+	if c.SendVerificationCode(context.Background(), "u@x.y", "", "1", 1) == nil {
 		t.Fatal("expected error")
 	}
 }
